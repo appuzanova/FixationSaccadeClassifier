@@ -23,5 +23,5 @@ fixations, saccades, fixation_colors, saccades_colors = classifier.fit_predict(l
 source: [Identifying Fixations and Saccades in Eye-Tracking Protocols](https://www.researchgate.net/publication/220811146_Identifying_fixations_and_saccades_in_eye-tracking_protocols)
 
 ## Example of usage
-see example/example.ipynb
+see [example.ipynb](https://github.com/appuzanova/FixationSaccadeClassifier/blob/master/example/example.ipynb)
  
