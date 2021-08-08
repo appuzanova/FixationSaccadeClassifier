@@ -17,16 +17,6 @@ class IDTFixationSaccadeClassifier:
         dy = np.max(y[win_beg: win_end]) - np.min(y[win_beg: win_end])
         return dx + dy
 
-    @staticmethod
-    def _get_window_parameters(array_len: int, current_record: int, window_length: int) -> Tuple[int, int]:
-        window_start = current_record
-        window_ended = window_start + window_length
-
-        if window_ended > array_len:
-            window_ended = array_len
-
-        return window_start, window_ended
-
     def fit_predict(self, x: np.array, y: np.array) -> Tuple[List[int], List[int], List[int], List[int]]:
 
         if x.shape[0] != y.shape[0]:
@@ -35,21 +25,21 @@ class IDTFixationSaccadeClassifier:
         fixations, saccades = [], []
         fixation_colors, saccades_colors = [], []
 
-        win_beg, win_end = 0, min(len(x), self.win_len)
+        win_beg, win_end = 0, min(len(x) - 1, self.win_len)
 
         fix_c, sacc_c = 0, 0
 
         while (win_beg < len(x)):
             dispersion = self._calc_min_max_dispersion(x, y, win_beg, win_end)
             if dispersion < self.threshold:
-                while win_end < len(x) and dispersion < self.threshold:
+                while win_end < len(x) - 1 and dispersion < self.threshold:
                     win_end += 1
                     dispersion = self._calc_min_max_dispersion(x, y, win_beg, win_end)
                 for i in range(win_beg, win_end):
                     fixations.append(i)
                     fixation_colors.append(fix_c)
                 fix_c += 10
-                win_beg, win_end = win_end + 1, min(len(x), win_end + 1 + self.win_len)
+                win_beg, win_end = win_end + 1, min(len(x) - 1, win_end + 1 + self.win_len)
             else:
                 saccades.append(win_beg)
                 if len(saccades) > 0 and win_beg - 1 != saccades[-1]:
@@ -265,3 +255,47 @@ class IAOIFixationSaccadeClassifier:
                     points = []
 
         return fixations, fixation_colors
+
+class IWVTFixationSaccadeClassifier:
+
+    def __init__(self, threshold: float = 15.0, win_len: int = 10):
+        self.threshold = threshold
+        self.win_len = win_len
+
+    @staticmethod
+    def _calc_win_dist(x: np.array, y: np.array, win_beg: int, win_end: int) -> int:
+        dx = x[win_beg] - x[win_end]
+        dy = y[win_beg] - y[win_end]
+        return np.hypot(dx, dy)
+
+    def fit_predict(self, x: np.array, y: np.array) -> Tuple[List[int], List[int], List[int], List[int]]:
+
+        if x.shape[0] != y.shape[0]:
+            raise ValueError('x and y shape does not match')
+
+        fixations, saccades = [], []
+        fixation_colors, saccades_colors = [], []
+
+        win_beg, win_end = 0, min(len(x) - 1, self.win_len)
+
+        fix_c, sacc_c = 0, 0
+
+        while (win_beg < len(x)):
+            dispersion = self._calc_win_dist(x, y, win_beg, win_end)
+            if dispersion < self.threshold:
+                while win_end < len(x) - 1 and dispersion < self.threshold:
+                    win_end += 1
+                    dispersion = self._calc_win_dist(x, y, win_beg, win_end)
+                for i in range(win_beg, win_end):
+                    fixations.append(i)
+                    fixation_colors.append(fix_c)
+                fix_c += 10
+                win_beg, win_end = win_end + 1, min(len(x) - 1, win_end + 1 + self.win_len)
+            else:
+                saccades.append(win_beg)
+                if len(saccades) > 0 and win_beg - 1 != saccades[-1]:
+                    sacc_c += 10
+                saccades_colors.append(sacc_c)
+                win_beg += 1
+
+        return fixations, saccades, fixation_colors, saccades_colors
