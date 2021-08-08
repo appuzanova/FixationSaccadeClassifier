@@ -41,9 +41,9 @@ class IDTFixationSaccadeClassifier:
                 fix_c += 10
                 win_beg, win_end = win_end + 1, min(len(x) - 1, win_end + 1 + self.win_len)
             else:
-                saccades.append(win_beg)
                 if len(saccades) > 0 and win_beg - 1 != saccades[-1]:
                     sacc_c += 10
+                saccades.append(win_beg)
                 saccades_colors.append(sacc_c)
                 win_beg += 1
 
@@ -292,9 +292,9 @@ class IWVTFixationSaccadeClassifier:
                 fix_c += 10
                 win_beg, win_end = win_end + 1, min(len(x) - 1, win_end + 1 + self.win_len)
             else:
-                saccades.append(win_beg)
                 if len(saccades) > 0 and win_beg - 1 != saccades[-1]:
                     sacc_c += 10
+                saccades.append(win_beg)
                 saccades_colors.append(sacc_c)
                 win_beg += 1
 
