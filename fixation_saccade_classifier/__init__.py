@@ -3,6 +3,7 @@ import numpy as np
 
 from enum import Enum, unique
 from typing import Tuple, List
+import copy
 
 
 class IDTFixationSaccadeClassifier:
@@ -17,7 +18,11 @@ class IDTFixationSaccadeClassifier:
         dy = np.max(y[win_beg: win_end]) - np.min(y[win_beg: win_end])
         return dx + dy
 
-    def fit_predict(self, x: np.array, y: np.array) -> Tuple[List[int], List[int], List[int], List[int]]:
+    def fit_predict(self, x: np.array, y: np.array = None) -> Tuple[List[int], List[int], List[int], List[int]]:
+
+        if y is None:
+            tmp = x.copy()
+            x, y = tmp[:, 0], tmp[:, 1]
 
         if x.shape[0] != y.shape[0]:
             raise ValueError('x and y shape does not match')
@@ -55,7 +60,11 @@ class IVTFixationSaccadeClassifier:
     def __init__(self, threshold: float = 5.0):
         self.threshold = threshold
 
-    def fit_predict(self, x: np.array, y: np.array) -> Tuple[List[int], List[int], List[int], List[int]]:
+    def fit_predict(self, x: np.array, y: np.array = None) -> Tuple[List[int], List[int], List[int], List[int]]:
+
+        if y is None:
+            tmp = x.copy()
+            x, y = tmp[:, 0], tmp[:, 1]
 
         if x.shape[0] != y.shape[0]:
             raise ValueError('x and y shape does not match')
@@ -165,7 +174,11 @@ class IHMMFixationSaccadeClassifier:
 
         return prob, path[state]
 
-    def fit_predict(self, x: np.array, y: np.array) -> Tuple[List[int], List[int], List[int], List[int]]:
+    def fit_predict(self, x: np.array, y: np.array = None) -> Tuple[List[int], List[int], List[int], List[int]]:
+
+        if y is None:
+            tmp = x.copy()
+            x, y = tmp[:, 0], tmp[:, 1]
 
         if x.shape[0] != y.shape[0]:
             raise ValueError('x and y shape does not match')
@@ -210,7 +223,11 @@ class IAOIFixationSaccadeClassifier:
         return area
 
 
-    def fit_predict(self, x: np.array, y: np.array) -> Tuple[List[int], List[int]]:
+    def fit_predict(self, x: np.array, y: np.array = None) -> Tuple[List[int], List[int]]:
+
+        if y is None:
+            tmp = x.copy()
+            x, y = tmp[:, 0], tmp[:, 1]
 
         if x.shape[0] != y.shape[0]:
             raise ValueError('x and y shape does not match')
@@ -258,17 +275,23 @@ class IAOIFixationSaccadeClassifier:
 
 class IWVTFixationSaccadeClassifier:
 
-    def __init__(self, threshold: float = 15.0, win_len: int = 10):
+    def __init__(self, threshold: float = 20.0, win_len: int = 20):
         self.threshold = threshold
         self.win_len = win_len
 
     @staticmethod
     def _calc_win_dist(x: np.array, y: np.array, win_beg: int, win_end: int) -> int:
-        dx = x[win_beg] - x[win_end]
-        dy = y[win_beg] - y[win_end]
-        return np.hypot(dx, dy)
+        d = []
+        for i in range(1, win_end - win_beg):
+            d.append(np.hypot(x[win_beg + i] - x[win_beg], y[win_beg + i] - y[win_beg]))
+        d = np.array(d)
+        return np.mean(d)
 
-    def fit_predict(self, x: np.array, y: np.array) -> Tuple[List[int], List[int], List[int], List[int]]:
+    def fit_predict(self, x: np.array, y: np.array = None) -> Tuple[List[int], List[int], List[int], List[int]]:
+
+        if y is None:
+            tmp = x.copy()
+            x, y = tmp[:, 0], tmp[:, 1]
 
         if x.shape[0] != y.shape[0]:
             raise ValueError('x and y shape does not match')
